@@ -70,31 +70,85 @@ void SpecificWorker::initialize()
 
 		this->setPeriod(STATES::Compute, 100);
 		//this->setPeriod(STATES::Emergency, 500);
-
 	}
-
 }
 
 void SpecificWorker::compute()
 {
     std::cout << "Compute worker" << std::endl;
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-    //    if (img.empty())
-    //        emit goToEmergency()
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
-	
-	
+
+	// get laser data from Laser proxy
+	RoboCompLaser::TLaserData ldata;
+	try{ ldata = laser_proxy->getLaserData();}
+	catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; }
+
+
+	//qDebug() << "Mind dist:" <<  m->dist;
+
+	// state machine to control de robot
+
+	 switch (estado)
+	 {
+	 	case ESTADO::avanzar:
+	 		avanzar(ldata);
+		case ESTADO::rotar:
+	 		rotar(ldata);
+	//
+
+	 }
+
+
+
+
+	// control the robot
+	//float adv = 5000;
+	//float rot = 0;
+	//try{ omnirobot_proxy->setSpeedBase(0, adv, rot);}
+	//catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; }
+
 }
+
+//////////////////////////////////////////////////////////////////////////////////////
+void SpecificWorker::avanzar(const RoboCompLaser::TLaserData &ldata)
+{
+	// exit condition
+	// check obstacle on front
+
+	float  pos_inicial= ldata.size()/2;
+	float	inicio = pos_inicial - ldata.size()/8;
+	float final = pos_inicial + ldata.size()/8;
+
+	auto m = std::min_element(ldata.begin() + inicio, ldata.begin() + final, [](const auto &x, const auto &y)
+		{ return x.dist < y.dist;});
+
+	std::cout << "Distancia mínima: " << m->dist << std::endl;
+
+	if (m->dist<=400)
+	{
+		// parar robot
+		try{ omnirobot_proxy->setSpeedBase(0, 0, 0);}
+		catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; }
+		estado = ESTADO::rotar;
+	}
+
+	// do my thing
+	float adv = 5000;
+	float rot = 0;
+	try{ omnirobot_proxy->setSpeedBase(0, adv, rot);}
+	catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; }
+}
+
+void SpecificWorker::rotar(const RoboCompLaser::TLaserData &ldata) {
+	std::cout << "Voy a rotar: " << std::endl;
+
+
+	float adv = 0;
+	float rot = 0;
+	try{ omnirobot_proxy->setSpeedBase(0, adv, rot);}
+	catch(const Ice::Exception &e){ std::cout << e.what() << std::endl; }
+
+}
+/////////////////////////////////////////////////////////////////////////////////////
 
 void SpecificWorker::emergency()
 {

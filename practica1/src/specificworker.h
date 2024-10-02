@@ -31,14 +31,14 @@
 
 #include <genericworker.h>
 
-class SpecificWorker : public GenericWorker
-{
-Q_OBJECT
-public:
+class SpecificWorker : public GenericWorker {
+	Q_OBJECT
+	public:
 	SpecificWorker(TuplePrx tprx, bool startup_check);
 	~SpecificWorker();
 	bool setParams(RoboCompCommonBehavior::ParameterList params);
-
+	enum class  ESTADO {avanzar, rotar};
+	ESTADO estado=ESTADO::avanzar;
 
 
 public slots:
@@ -49,6 +49,9 @@ public slots:
 	int startup_check();
 private:
 	bool startup_check_flag;
+	void avanzar(const RoboCompLaser::TLaserData& ldata);
+	void rotar(const RoboCompLaser::TLaserData& ldata);
+
 
 };
 
