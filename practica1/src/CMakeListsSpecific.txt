@@ -2,15 +2,17 @@
 LIST(APPEND SOURCES
   specificworker.cpp
   specificmonitor.cpp
+  $ENV{ROBOCOMP}/classes/abstract_graphic_viewer/abstract_graphic_viewer.cpp
 )
 
 # Headers set
 LIST(APPEND HEADERS
   specificworker.h
   specificmonitor.h
+  $ENV{ROBOCOMP}/classes/abstract_graphic_viewer/abstract_graphic_viewer.h
 )
 
-
+add_definitions(-std=c++2b)
 LIST(APPEND LIBS ${LIBS}  )
 
 

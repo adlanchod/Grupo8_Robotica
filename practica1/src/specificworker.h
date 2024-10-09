@@ -27,32 +27,63 @@
 #ifndef SPECIFICWORKER_H
 #define SPECIFICWORKER_H
 
-#define HIBERNATION_ENABLED
+//#define HIBERNATION_ENABLED
 
 #include <genericworker.h>
-
-class SpecificWorker : public GenericWorker {
-	Q_OBJECT
-	public:
-	SpecificWorker(TuplePrx tprx, bool startup_check);
-	~SpecificWorker();
-	bool setParams(RoboCompCommonBehavior::ParameterList params);
-	enum class  ESTADO {avanzar, rotar};
-	ESTADO estado=ESTADO::avanzar;
+#include "abstract_graphic_viewer/abstract_graphic_viewer.h"
+#include <expected>
+#include <random>
 
 
-public slots:
-	void initialize();
-	void compute();
-	void emergency();
-	void restore();
-	int startup_check();
-private:
-	bool startup_check_flag;
-	void avanzar(const RoboCompLaser::TLaserData& ldata);
-	void rotar(const RoboCompLaser::TLaserData& ldata);
+class SpecificWorker : public GenericWorker
+{
+    Q_OBJECT
+    public:
+        SpecificWorker(TuplePrx tprx, bool startup_check);
+        ~SpecificWorker();
+        bool setParams(RoboCompCommonBehavior::ParameterList params);
 
+    public slots:
+        void initialize();
+        void compute();
+        void emergency();
+        void restore();
+        int startup_check();
 
+    private:
+        struct Params
+        {
+            float ROBOT_WIDTH = 460;  // mm
+            float ROBOT_LENGTH = 480;  // mm
+            float MAX_ADV_SPEED = 1000; // mm/s
+            float MAX_ROT_SPEED = 1; // rad/s
+            float STOP_THRESHOLD = MAX_ADV_SPEED*0.7; // mm
+            float ADVANCE_THRESHOLD = ROBOT_WIDTH * 2; // mm
+            float LIDAR_OFFSET = 9.f/10.f; // eight tenths of vector's half size
+            float LIDAR_FRONT_SECTION = 0.5; // rads, aprox 30 degrees
+            std::string LIDAR_NAME_LOW = "bpearl";
+            std::string LIDAR_NAME_HIGH = "helios";
+            QRectF GRID_MAX_DIM{-5000, 2500, 10000, -5000};
+
+        };
+        Params params;
+
+        bool startup_check_flag;
+        AbstractGraphicViewer *viewer;
+
+        // state machine
+        enum class STATE {FORWARD, TURN};
+        STATE state = STATE::FORWARD;
+
+        using RetVal = std::tuple<STATE, float, float>;
+        RetVal forward(auto &filtered_points);
+        RetVal turn(auto &filtered_points);
+        void draw_lidar(auto &filtered_points, QGraphicsScene *scene);
+        QGraphicsPolygonItem* robot_draw;
+        std::expected<int, string> closest_lidar_index_to_given_angle(const auto &points, float angle);
+
+        // random number generator
+        std::random_device rd;
 };
 
 #endif
