@@ -57,9 +57,12 @@ class SpecificWorker : public GenericWorker
             float ROBOT_LENGTH = 480;  // mm
             float MAX_ADV_SPEED = 1000; // mm/s
             float MAX_ROT_SPEED = 1; // rad/s
-            float STOP_THRESHOLD = MAX_ADV_SPEED*0.7; // mm  parar antes de chocar
+            float STOP_THRESHOLD = MAX_ADV_SPEED*0.5; // mm  parar antes de chocar
             float ADVANCE_THRESHOLD = ROBOT_WIDTH * 1.4; // mm recuperar después de chocar
             float LIDAR_FRONT_SECTION = 0.5; // rads, aprox 30 degrees
+            float WALL_DESIRED_DISTANCE = 400;
+            float DELTA = 10;
+
             std::string LIDAR_NAME_LOW = "bpearl";
             std::string LIDAR_NAME_HIGH = "helios";
             QRectF GRID_MAX_DIM{-5000, 2500, 10000, -5000};
