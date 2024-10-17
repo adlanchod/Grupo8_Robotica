@@ -74,13 +74,14 @@ class SpecificWorker : public GenericWorker
         AbstractGraphicViewer *viewer;
 
         // state machine
-        enum class STATE {FORWARD, TURN, WALL};
+        enum class STATE {FORWARD, TURN, WALL, SPIRAL };
         STATE state = STATE::FORWARD;
 
         using RetVal = std::tuple<STATE, float, float>;
         RetVal forward(auto &filtered_points);
         RetVal turn(auto &filtered_points);
         RetVal wall(auto &filtered_points);
+        RetVal spiral(auto &filtered_points);
         void draw_lidar(auto &filtered_points, QGraphicsScene *scene);
         QGraphicsPolygonItem* robot_draw;
         std::expected<int, string> closest_lidar_index_to_given_angle(const auto &points, float angle);

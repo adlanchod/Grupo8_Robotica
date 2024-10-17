@@ -105,6 +105,12 @@ void SpecificWorker::compute()
                 break;
 
         }
+        case STATE::SPIRAL:
+        {
+            ret_val = spiral(p_filter);
+            break;
+
+        }
     }
     /// unpack  the tuple
     /// la variable 'ret_val' es una tupla que contiene tres valores (estado, velocidad de avance del robot, velocidad de rotacion)
@@ -160,10 +166,14 @@ SpecificWorker::RetVal SpecificWorker::forward(auto &points)
     //cerca de un obstáculo. El robot cambia su estado a girar y la velocidad de avance y rotacion se establece a 0.f
     //deteniendo el robot por un momento. En el caso de que el robot no llegue a ningún obstaculo, el robot seguirá
     //avanzando.
-    if (min_point != points.end() and min_point->distance2d < params.STOP_THRESHOLD)
-            return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
-    else
+
+    if (min_point != points.end() and min_point->distance2d < params.STOP_THRESHOLD) {
+        qDebug() << "Hola1";
+        return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
+    }else {
+        qDebug() << "Hola1";
         return RetVal(STATE::FORWARD, params.MAX_ADV_SPEED, 0.f);
+    }
 }
 
 /**
@@ -183,6 +193,8 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points) {
     static bool first_time = true;
     static int sign = 1;
 
+
+
     /// check if the narrow central part of the filtered_points vector is free to go. If so stop turning and change state to FORWARD
     auto offset_begin = closest_lidar_index_to_given_angle(points, -params.LIDAR_FRONT_SECTION);
     auto offset_end = closest_lidar_index_to_given_angle(points, params.LIDAR_FRONT_SECTION);
@@ -193,14 +205,20 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points) {
         qWarning() << "No valid readings. Stopping";
         return RetVal(STATE::FORWARD, 0.f, 0.f);
     }
+    first_time = true;
+
 
     auto min_point = std::min_element(std::begin(points) + offset_begin.value(), std::begin(points) + offset_end.value(), [](auto &a, auto &b)
     { return a.distance2d < b.distance2d; });
     if (min_point != std::end(points) and min_point->distance2d > params.ADVANCE_THRESHOLD)
     {
-        first_time = true;
 
-        return RetVal(STATE::WALL, params.MAX_ADV_SPEED , 0.f);
+
+            qDebug() << "Hemos entrado en wall con la maxima velocidad y la velocidad de rotación a 0";
+            return RetVal(STATE::WALL, params.MAX_ADV_SPEED, 0.f);
+
+
+
     }
 
     /// Keep doing my business
@@ -218,6 +236,8 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points) {
             sign = min_point_all->phi > 0 ? -1 : 1;
         first_time = false;
     }
+    qDebug() << "Hola";
+
     return RetVal(STATE::TURN, 0.f, sign * params.MAX_ROT_SPEED);
 }
 
@@ -260,15 +280,15 @@ SpecificWorker::RetVal SpecificWorker::wall(auto &points)
     if (min_point_global->phi >= 0)
     {
         // Si la distancia a la pared es mayor que la distancia deseada, gira hacia la derecha (acercarse a la pared)
-        if (min_point_global->distance2d > params.WALL_DESIRED_DISTANCE + params.DELTA )
+        if (min_point_global->distance2d > params.WALL_DESIRED_DISTANCE + params.DELTA)
         {
-            qDebug() << "Mano derecha y lejos" << min_point_global->phi << min_point_global->distance2d << freno << error;
+            qDebug() << "Mano derecha y cerca" << min_point_global->phi << min_point_global->distance2d << freno << error;
             return RetVal(STATE::WALL, params.MAX_ADV_SPEED * freno, 0.5f);  // Gira hacia la pared
         }
         // Si la distancia es menor que la deseada, gira hacia la izquierda (alejarse de la pared)
         else if (min_point_global->distance2d < params.WALL_DESIRED_DISTANCE  + params.DELTA)
         {
-            qDebug() << "Mano derecha y cerca" << min_point_global->phi << min_point_global->distance2d << freno << error;
+            qDebug() << "Mano derecha y lejos" << min_point_global->phi << min_point_global->distance2d << freno << error;
             return RetVal(STATE::WALL, params.MAX_ADV_SPEED * freno, -0.5f);  // Gira alejándose de la pared
         }
         // Si la distancia es correcta, sigue avanzando paralelo a la pared
@@ -285,11 +305,13 @@ SpecificWorker::RetVal SpecificWorker::wall(auto &points)
         // Si la distancia a la pared es mayor que la deseada, gira hacia la izquierda (acercarse a la pared)
         if (min_point_global->distance2d > params.WALL_DESIRED_DISTANCE + params.DELTA )
         {
+            qDebug() << "Mano izquierda y cerca" << min_point_global->phi << min_point_global->distance2d << freno << error;
             return RetVal(STATE::WALL, params.MAX_ADV_SPEED * freno, -0.5f);  // Gira hacia la pared
         }
         // Si la distancia es menor que la deseada, gira hacia la derecha (alejarse de la pared)
         else if (min_point_global->distance2d < params.WALL_DESIRED_DISTANCE + params.DELTA )
         {
+            qDebug() << "Mano izquierda y lejos" << min_point_global->phi << min_point_global->distance2d << freno << error;
             return RetVal(STATE::WALL, params.MAX_ADV_SPEED * freno, 0.5f);  // Gira alejándose de la pared
         }
         // Si la distancia es correcta, sigue avanzando paralelo a la pared
@@ -301,33 +323,48 @@ SpecificWorker::RetVal SpecificWorker::wall(auto &points)
 
     // Si no se detecta ninguna pared cercana, seguimos avanzando hacia adelante
     //return RetVal(STATE::FORWARD, params.MAX_ADV_SPEED, 0.f);
-
 }
 
-    /*
-    // Obtener el punto más cercano en un rango de 90 grados a la derecha del robot
-    auto offset_res = closest_lidar_index_to_given_angle(points, -M_PI/2);  // 90 grados a la derecha
-    if (!offset_res.has_value())
-    {
-        std::cerr << "Error: " << offset_res.error() << std::endl;
-        return RetVal(STATE::FORWARD, params.MAX_ADV_SPEED, 0.f);  // Si no se encuentra una pared, avanza hacia adelante
+
+SpecificWorker::RetVal SpecificWorker::spiral(auto &points) {
+
+    static float velocidad1 = 0;
+    static float velocidad_rotacion = params.MAX_ROT_SPEED;
+
+
+    //voy a a coger el mínimo de cualquier obstáculo, no solo la distancia mínima del rango que tiene
+    //establecido el robot, para que me detecte cualquier obstáculo en todas las direcciones del robot.
+    auto min_point_global = std::ranges::min_element(points, [](auto &a, auto &b)
+        { return a.distance2d < b.distance2d; });
+
+    //Condición para que en el caso de que llegue a un obstaculo se pare y realize otro estado.
+    //La variable STOP_THRESHOLD: Sería nuestro umbral que vale 400.
+    if (min_point_global->distance2d > params.STOP_THRESHOLD) {
+
+        if (velocidad1 < params.MAX_ADV_SPEED) {
+
+            velocidad1 += 1.5f;
+            qDebug() << "Aumentando velocidad";
+
+
+        }
+        qDebug() << velocidad_rotacion ;
+        if(velocidad_rotacion > 0 ) {
+
+            velocidad_rotacion -= 0.001f;
+            qDebug() << "Disminuyendo velocidad";
+
+
+        }
+
+        return RetVal(STATE::SPIRAL,velocidad1, velocidad_rotacion);
+
+    }else {
+        return RetVal(STATE::TURN,0.f, 0.f);
     }
 
-    int offset = offset_res.value();
-    const auto &point = points[offset];
 
-    // Si la distancia a la pared es mayor que un umbral, el robot gira hacia la pared
-    if (point.distance2d > params.WALL_FOLLOW_DISTANCE + params.WALL_FOLLOW_THRESHOLD)
-        return RetVal(STATE::RECTO, params.MAX_ADV_SPEED, params.MAX_ROT_SPEED);  // Gira hacia la pared
-
-    // Si la distancia es menor, el robot gira para alejarse de la pared
-    if (point.distance2d < params.WALL_FOLLOW_DISTANCE - params.WALL_FOLLOW_THRESHOLD)
-        return RetVal(STATE::RECTO, params.MAX_ADV_SPEED, -params.MAX_ROT_SPEED);  // Gira alejándose de la pared
-
-    // Si el robot está en el rango correcto, avanza sin girar
-    return RetVal(STATE::RECTO, params.MAX_ADV_SPEED, 0.f);
 }
-/*
 
 
 
