@@ -57,11 +57,13 @@ class SpecificWorker : public GenericWorker
             float ROBOT_LENGTH = 480;  // mm
             float MAX_ADV_SPEED = 1000; // mm/s
             float MAX_ROT_SPEED = 1; // rad/s
-            float STOP_THRESHOLD = MAX_ADV_SPEED*0.5; // mm  parar antes de chocar
-            float ADVANCE_THRESHOLD = ROBOT_WIDTH * 1.4; // mm recuperar después de chocar
-            float LIDAR_FRONT_SECTION = 0.5; // rads, aprox 30 degrees
-            float WALL_DESIRED_DISTANCE = 400;
-            float DELTA = 10;
+            float STOP_THRESHOLD = 700; // mm
+            float ADVANCE_THRESHOLD = ROBOT_WIDTH * 3; // mm
+            float LIDAR_FRONT_SECTION = 0.2; // rads, aprox 12 degrees
+            // wall
+            float LIDAR_RIGHT_SIDE_SECTION = M_PI/3; // rads, 90 degrees
+            float LIDAR_LEFT_SIDE_SECTION = -M_PI/3; // rads, 90 degrees
+            float WALL_MIN_DISTANCE = ROBOT_WIDTH*1.2;
 
             std::string LIDAR_NAME_LOW = "bpearl";
             std::string LIDAR_NAME_HIGH = "helios";
@@ -74,20 +76,26 @@ class SpecificWorker : public GenericWorker
         AbstractGraphicViewer *viewer;
 
         // state machine
-        enum class STATE {FORWARD, TURN, WALL, SPIRAL };
+        enum class STATE {FORWARD, TURN, WALL};
         STATE state = STATE::FORWARD;
-
         using RetVal = std::tuple<STATE, float, float>;
         RetVal forward(auto &filtered_points);
         RetVal turn(auto &filtered_points);
         RetVal wall(auto &filtered_points);
-        RetVal spiral(auto &filtered_points);
+
+        // draw
         void draw_lidar(auto &filtered_points, QGraphicsScene *scene);
         QGraphicsPolygonItem* robot_draw;
+
+        // aux
         std::expected<int, string> closest_lidar_index_to_given_angle(const auto &points, float angle);
 
         // random number generator
         std::random_device rd;
+
+        // WALL-FOLLOW left-right handness
+        enum class HANDNESS {LEFT, RIGHT};
+        HANDNESS handness = HANDNESS::RIGHT;
 };
 
 #endif
