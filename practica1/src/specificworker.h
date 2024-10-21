@@ -33,6 +33,8 @@
 #include "abstract_graphic_viewer/abstract_graphic_viewer.h"
 #include <expected>
 #include <random>
+#include <chrono>
+#include <cmath>
 
 
 class SpecificWorker : public GenericWorker
@@ -42,6 +44,8 @@ class SpecificWorker : public GenericWorker
         SpecificWorker(TuplePrx tprx, bool startup_check);
         ~SpecificWorker();
         bool setParams(RoboCompCommonBehavior::ParameterList params);
+        static int numero_vueltas;
+
 
     public slots:
         void initialize();
@@ -64,24 +68,30 @@ class SpecificWorker : public GenericWorker
             float LIDAR_RIGHT_SIDE_SECTION = M_PI/3; // rads, 90 degrees
             float LIDAR_LEFT_SIDE_SECTION = -M_PI/3; // rads, 90 degrees
             float WALL_MIN_DISTANCE = ROBOT_WIDTH*1.2;
+            float MIN_DISTANCE = 0;
 
             std::string LIDAR_NAME_LOW = "bpearl";
             std::string LIDAR_NAME_HIGH = "helios";
             QRectF GRID_MAX_DIM{-5000, 2500, 10000, -5000};
 
         };
+
+
         Params params;
 
         bool startup_check_flag;
         AbstractGraphicViewer *viewer;
 
         // state machine
-        enum class STATE {FORWARD, TURN, WALL};
-        STATE state = STATE::FORWARD;
+        enum class STATE {FORWARD, TURN, WALL, SPIRAL, SPIRAL_REVERSO};
+        STATE state = STATE::SPIRAL;
         using RetVal = std::tuple<STATE, float, float>;
         RetVal forward(auto &filtered_points);
         RetVal turn(auto &filtered_points);
         RetVal wall(auto &filtered_points);
+        RetVal spiral(auto &filtered_points);
+        RetVal spiral_reverso(auto &filtered_points);
+
 
         // draw
         void draw_lidar(auto &filtered_points, QGraphicsScene *scene);
