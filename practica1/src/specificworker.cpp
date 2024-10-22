@@ -162,6 +162,7 @@ void SpecificWorker::compute()
  */
 SpecificWorker::RetVal SpecificWorker::forward(auto &points)
 {
+    //params.enc=true;
     // check if the central part of the filtered_points vector has a minimum lower than the size of the robot
     auto offset_begin = closest_lidar_index_to_given_angle(points, -params.LIDAR_FRONT_SECTION);
     auto offset_end = closest_lidar_index_to_given_angle(points, params.LIDAR_FRONT_SECTION);
@@ -176,10 +177,10 @@ SpecificWorker::RetVal SpecificWorker::forward(auto &points)
         { return a.distance2d < b.distance2d; });
 
     if (min_point!= points.end() and min_point->distance2d < params.STOP_THRESHOLD) {
-        qDebug() << "Hola1";
+        qDebug() << "Entrando en TURN dentro del FORWARD";
         return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
     }else {
-        qDebug() << "Hola2";
+        qDebug() << "Va a realizar FORWARD (Línea recta)";
         return RetVal(STATE::FORWARD, params.MAX_ADV_SPEED, 0.f);
     }
 }
@@ -193,105 +194,6 @@ SpecificWorker::RetVal SpecificWorker::forward(auto &points)
  * @param filtered_points A vector containing points with distance information used for making navigation decisions.
  * @returns A tuple containing the next state (FORWARD or TURN), and speed values.
  */
-/*
-SpecificWorker::RetVal SpecificWorker::turn(auto &points) {
-    // Instantiate the random number generator and distribution
-    static std::mt19937 gen(rd());
-    static std::uniform_int_distribution<int> dist(0, 1);
-    static bool first_time = true;
-    static int sign = 1;
-    static bool second_time= true;
-    static bool random_generated = false;
-
-
-
-
-
-    /// check if the narrow central part of the filtered_points vector is free to go. If so stop turning and change state to FORWARD
-    auto offset_begin = closest_lidar_index_to_given_angle(points, -params.LIDAR_FRONT_SECTION);
-    auto offset_end = closest_lidar_index_to_given_angle(points, params.LIDAR_FRONT_SECTION);
-
-    // exit if no valid readings
-    if (not offset_begin or not offset_end)
-    {
-        qWarning() << "No valid readings. Stopping";
-        return RetVal(STATE::TURN, 0.f, 0.f);
-    }
-
-    // TURN
-    auto min_point = std::min_element(std::begin(points) + offset_begin.value(), std::begin(points) + offset_end.value(), [](auto &a, auto &b)
-    { return a.distance2d < b.distance2d; });
-
-    //Generamos un nuevo número aleatorio:
-    static std::uniform_real_distribution<float> dist_real(params.ADVANCE_THRESHOLD * 2 , params.ADVANCE_THRESHOLD * 3);
-    //float distancia = params.ADVANCE_THRESHOLD;
-    float distancia = 0.0;
-
-    qDebug()<<"Número de vueltas: "<<numero_vueltas;
-    if(numero_vueltas >=10) {
-        second_time =false;
-    }
-
-    /*
-    distancia = dist_real(gen);
-    qDebug() << "Número aleatorio: "<<distancia;
-    if (min_point->distance2d > distancia) {
-        first_time = true;
-        random_generated = false;
-        qDebug() << "Entrando en forward";
-        return RetVal(STATE::FORWARD, 0.f, 0.f);
-    }
-
-
-
-    if(second_time) {
-        first_time = true;
-
-        if (min_point->distance2d > params.ADVANCE_THRESHOLD) {
-
-
-            //return RetVal(STATE::FORWARD, 0.f, 0.f);
-            qDebug() << "Entrando en WALL";
-            return RetVal(STATE::WALL, 0.f, 0.f);
-            //return RetVal(STATE::espiralreverso, 0.f, 0.f);
-        }
-
-    }else {
-
-
-        distancia = dist_real(gen);
-        qDebug() << "Número aleatorio: "<<distancia;
-        if (min_point->distance2d > distancia) {
-            random_generated = false;
-            qDebug() << "Entrando en forward";
-            return RetVal(STATE::FORWARD, 0.f, 0.f);
-        }
-    }
-
-
-
-    /// Keep doing my business
-    // compute the accumulated sum of all point in the left side of the robot
-    auto half = closest_lidar_index_to_given_angle(points, 0.f);
-    auto left_sum = std::accumulate(std::begin(points), std::begin(points) + half.value(), 0.f, [](auto a, auto b) { return a + 1.f/b.distance2d; });
-    auto right_sum = std::accumulate(std::begin(points) + half.value(), std::end(points), 0.f, [](auto a, auto b) { return a + 1.f/b.distance2d; });
-    // if there is more obstacles on the left, turn right, otherwise turn left. If it is close to zero, turn randomly
-    if (first_time)
-    {
-        if (fabs(left_sum-right_sum) < 1)  // if the difference is too small, turn randomly
-        {
-            sign = dist(gen);
-            qDebug() << sign;
-            if (sign == 0) sign = -1; else sign = 1;
-        }
-        else
-            sign = left_sum > right_sum ? 1 : -1;
-        first_time = false;
-    }
-
-    return RetVal(STATE::TURN, 0.f, sign * params.MAX_ROT_SPEED);
-}
-*/
 SpecificWorker::RetVal SpecificWorker::turn(auto &points)
 {
     // Instantiate the random number generator and distribution
@@ -314,13 +216,53 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points)
     // TURN
     auto min_point = std::min_element(std::begin(points) + offset_begin.value(), std::begin(points) + offset_end.value(), [](auto &a, auto &b)
     { return a.distance2d < b.distance2d; });
+
+     //Generamos un nuevo número aleatorio:
+    static std::uniform_real_distribution<float> dist_real(params.ADVANCE_THRESHOLD * 3 , params.ADVANCE_THRESHOLD * 4);
+    float distancia = 0.0;
+    /*
     if (min_point != std::end(points) and min_point->distance2d > params.ADVANCE_THRESHOLD)
     {
         first_time = true;
-        qDebug()<< "    Holaaa";
+        qDebug()<< "Entrando en el estado WALL para seguir la pared";
         //return RetVal(STATE::FORWARD, 0.f, 0.f);
         return RetVal(STATE::WALL, 0.f, 0.f);
-    }
+        */
+
+        if ( params.enc) {
+
+
+                if (min_point != std::end(points) and min_point->distance2d > dist_real(gen))
+                {
+                    first_time = true;
+                    return RetVal(STATE::FORWARD, 0.f, 0.f);
+
+
+                }
+
+        }else {
+            if(params.primera_vez) {
+                if (min_point != std::end(points) and min_point->distance2d > params.ADVANCE_THRESHOLD)
+                {
+                    qDebug()<< "Entrando en primera vez";
+                    first_time = true;
+                    params.primera_vez = false;
+                    return RetVal(STATE::FORWARD, 0.f, 0.f);
+
+
+                }
+            }
+
+                if (min_point != std::end(points) and min_point->distance2d > params.ADVANCE_THRESHOLD) {
+                    first_time = true;
+                    qDebug()<< "Entrando en el estado WALL para seguir la pared";
+                    //return RetVal(STATE::FORWARD, 0.f, 0.f);
+                    return RetVal(STATE::WALL, 0.f, 0.f);
+                }
+
+
+        }
+
 
     /// Keep doing my business
     // compute the accumulated sum of all point in the left side of the robot
@@ -333,7 +275,6 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points)
         if (fabs(left_sum-right_sum) < 1)  // if the difference is too small, turn randomly
         {
             sign = dist(gen);
-            qDebug() << sign;
             if (sign == 0) sign = -1; else sign = 1;
         }
         else
@@ -342,9 +283,6 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points)
     }
     return RetVal(STATE::TURN, 0.f, sign * params.MAX_ROT_SPEED);
 }
-
-
-
 
 /**
  * @brief Determines the robot's behavior when following a wall.
@@ -360,6 +298,7 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points)
 SpecificWorker::RetVal SpecificWorker::wall(auto &filtered_points)
 {
     static bool first_time = true;
+    static int numero_giros = 0;
 
     // check if about to crash
     auto offset_begin = closest_lidar_index_to_given_angle(filtered_points, -params.LIDAR_FRONT_SECTION);
@@ -368,8 +307,14 @@ SpecificWorker::RetVal SpecificWorker::wall(auto &filtered_points)
     { return a.distance2d < b.distance2d; });
     if(min_point->distance2d < params.STOP_THRESHOLD)
     {
+
         first_time = true;
-        numero_vueltas ++;
+        numero_giros = numero_giros + 1;
+        qDebug() << "Número de giros: " << numero_giros;
+        if(numero_giros >= 4) {
+            params.enc = true;
+
+        }
         return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
 
 
@@ -436,10 +381,6 @@ SpecificWorker::RetVal SpecificWorker::spiral(auto &points) {
     auto min_point = std::min_element(std::begin(points) + offset_begin.value(), std::begin(points) + offset_end.value(), [](auto &a, auto &b)
     { return a.distance2d < b.distance2d; });
 
-
-
-
-
     static float velocidad1 = 50.0f;
     static float velocidad_rotacion = params.MAX_ROT_SPEED;
 
@@ -501,7 +442,6 @@ SpecificWorker::RetVal SpecificWorker::spiral(auto &points) {
 
 
 }
-
 SpecificWorker::RetVal SpecificWorker::spiral_reverso(auto &filtered_points)
 {
     static bool first_time = true;
@@ -520,7 +460,7 @@ SpecificWorker::RetVal SpecificWorker::spiral_reverso(auto &filtered_points)
 
         if(numero_vueltas >=4) {
 
-            params.MIN_DISTANCE += params.ROBOT_WIDTH;
+            params.MIN_DISTANCE += params.ROBOT_WIDTH + 100;
             numero_vueltas = 0;
             //return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
 

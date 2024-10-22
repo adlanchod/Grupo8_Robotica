@@ -70,6 +70,9 @@ class SpecificWorker : public GenericWorker
             float WALL_MIN_DISTANCE = ROBOT_WIDTH*1.2;
             float MIN_DISTANCE = 0;
 
+            bool enc = false;
+            bool primera_vez = true;
+
             std::string LIDAR_NAME_LOW = "bpearl";
             std::string LIDAR_NAME_HIGH = "helios";
             QRectF GRID_MAX_DIM{-5000, 2500, 10000, -5000};
