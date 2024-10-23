@@ -218,7 +218,7 @@ SpecificWorker::RetVal SpecificWorker::turn(auto &points)
     { return a.distance2d < b.distance2d; });
 
      //Generamos un nuevo número aleatorio:
-    static std::uniform_real_distribution<float> dist_real(params.ADVANCE_THRESHOLD * 3 , params.ADVANCE_THRESHOLD * 4);
+    static std::uniform_real_distribution<float> dist_real(params.ADVANCE_THRESHOLD * 2, params.ADVANCE_THRESHOLD * 3);
     float distancia = 0.0;
     /*
     if (min_point != std::end(points) and min_point->distance2d > params.ADVANCE_THRESHOLD)
@@ -458,9 +458,14 @@ SpecificWorker::RetVal SpecificWorker::spiral_reverso(auto &filtered_points)
         qDebug() << "Vueltas: " << numero_vueltas;
         numero_vueltas++;
 
+        if(numero_vueltas >= 8) {
+            params.enc = true;
+
+        }
+
         if(numero_vueltas >=4) {
 
-            params.MIN_DISTANCE += params.ROBOT_WIDTH + 100;
+            params.MIN_DISTANCE += params.ROBOT_WIDTH + 150;
             numero_vueltas = 0;
             //return RetVal(STATE::TURN, 0.f, 0.f);  // stop and change state if obstacle detected
 
