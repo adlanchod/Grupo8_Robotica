@@ -197,6 +197,8 @@ SpecificWorker::RobotSpeed SpecificWorker::state_machine(const RoboCompVisualEle
  // State function to track a person
 SpecificWorker::RetVal SpecificWorker::track(const RoboCompVisualElementsPub::TObject &person)
 {
+    qDebug() << "Entrando en el método";
+    //Este es el código para el freno de avance del robot
     //qDebug() << __FUNCTION__;
     // variance of the gaussian function is set by the user giving a point xset where the function must be yset, and solving for s
 //    auto gaussian_break = [](float x) -> float
@@ -209,16 +211,33 @@ SpecificWorker::RetVal SpecificWorker::track(const RoboCompVisualElementsPub::TO
 //        return (float)exp(-x*x/s);
 //    };
 
-    auto distance = std::hypot(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos")));
+    //auto distance = std::hypot(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos")));
+    //lcdNumber_dist_to_person->display(distance);
+    auto x = std::stof(person.attributes.at("x_pos"));
+    auto y = std::stof(person.attributes.at("y_pos"));
+    auto distance = std::hypot(x, y);
     lcdNumber_dist_to_person->display(distance);
 
     // check if the distance to the person is lower than a threshold
     if(distance < params.PERSON_MIN_DIST)
-    {   qWarning() << __FUNCTION__ << "Distance to person lower than threshold"; return RetVal(STATE::WAIT, 0.f, 0.f);}
+    {   qWarning() << __FUNCTION__ << "Distance to person lower than threshold";
+        return RetVal(STATE::WAIT, 0.f, 0.f);}
 
     /// TRACK   PUT YOUR CODE HERE
+    /// Calculamos la arcotangente con las coordenadas de la persona:
+    //float rotation_speed = std::atan2(y, x);
+    //qDebug() << "Rotation speed: " << rotation_speed;
 
-    return RetVal(STATE::TRACK, 0, 0);
+    // Calcular el ángulo hacia la persona
+    float angle_to_person = std::atan2(x, y);
+
+
+    // Controlar el robot para girar hacia la persona
+    float rotational_speed = angle_to_person * 1.5;
+    float linear_speed = 0.0; // Puedes ajustar esto si quieres que el robot avance
+
+
+    return RetVal(STATE::TRACK, 0, rotational_speed);
 }
 //
 SpecificWorker::RetVal SpecificWorker::wait(const RoboCompVisualElementsPub::TObject &person)
