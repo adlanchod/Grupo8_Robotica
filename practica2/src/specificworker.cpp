@@ -91,12 +91,18 @@ void SpecificWorker::compute()
     else data = data_.value();
 
     // get person and draw on viewer
+    //auto person = find_person_in_data(data.objects);
+    //if(not person.has_value())
+    //{ qWarning() << __FUNCTION__ << QString::fromStdString(person.error()); return; }   // STOP THE ROBOT
+
+
+    // Obtener la persona y dibujar en el visor
     auto person = find_person_in_data(data.objects);
-    if(not person.has_value())
-    { qWarning() << __FUNCTION__ << QString::fromStdString(person.error()); return; }   // STOP THE ROBOT
+
+
 
     // call state machine to track person
-    const auto &[adv, rot] = state_machine(person.value());
+    const auto &[adv, rot] = state_machine(person);
 
     // move the robot
     try{ omnirobot_proxy->setSpeedBase(0.f, adv, rot); }
@@ -157,7 +163,7 @@ SpecificWorker::find_person_in_data(const std::vector<RoboCompVisualElementsPub:
 /// STATE  MACHINE
 //////////////////////////////////////////////////////////////////
 // State machine to track a person
-SpecificWorker::RobotSpeed SpecificWorker::state_machine(const RoboCompVisualElementsPub::TObject &person)
+SpecificWorker::RobotSpeed SpecificWorker::state_machine(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
     // call the appropriate state function
     RetVal res;
@@ -178,6 +184,11 @@ SpecificWorker::RobotSpeed SpecificWorker::state_machine(const RoboCompVisualEle
             res = stop();
             label_state->setText("STOP");
             break;
+        case STATE::SEARCH:
+            res = search(person);
+            label_state->setText("SEARCH");
+            break;
+
     }
     auto &[st, speed, rot] = res;
     state = st;
@@ -195,26 +206,18 @@ SpecificWorker::RobotSpeed SpecificWorker::state_machine(const RoboCompVisualEle
  * @return A `RetVal` tuple consisting of the state (`FORWARD` or `TURN`), speed, and rotation.
  */
  // State function to track a person
-SpecificWorker::RetVal SpecificWorker::track(const RoboCompVisualElementsPub::TObject &person)
+SpecificWorker::RetVal SpecificWorker::track(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
     qDebug() << "Entrando en el método";
-    //Este es el código para el freno de avance del robot
-    //qDebug() << __FUNCTION__;
-    // variance of the gaussian function is set by the user giving a point xset where the function must be yset, and solving for s
-//    auto gaussian_break = [](float x) -> float
-//    {
-//        // gaussian function where x is the rotation speed -1 to 1. Returns 1 for x = 0 and 0.4 for x = 0.5
-//        const double xset = 0.5;
-//        const double yset = 0.6;
-          // compute the variance s so the function is yset for x = xset
-          // float s =
-//        return (float)exp(-x*x/s);
-//    };
+    static float angulo_anterior = 0.f;
+
+    if(not person)
+        return RetVal(STATE::SEARCH, 0.f, 0.f);
 
     //auto distance = std::hypot(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos")));
     //lcdNumber_dist_to_person->display(distance);
-    auto x = std::stof(person.attributes.at("x_pos"));
-    auto y = std::stof(person.attributes.at("y_pos"));
+    auto x = std::stof(person.value().attributes.at("x_pos"));
+    auto y = std::stof(person.value().attributes.at("y_pos"));
     auto distance = std::hypot(x, y);
     lcdNumber_dist_to_person->display(distance);
 
@@ -223,31 +226,55 @@ SpecificWorker::RetVal SpecificWorker::track(const RoboCompVisualElementsPub::TO
     {   qWarning() << __FUNCTION__ << "Distance to person lower than threshold";
         return RetVal(STATE::WAIT, 0.f, 0.f);}
 
-    /// TRACK   PUT YOUR CODE HERE
-    /// Calculamos la arcotangente con las coordenadas de la persona:
-    //float rotation_speed = std::atan2(y, x);
-    //qDebug() << "Rotation speed: " << rotation_speed;
-
     // Calcular el ángulo hacia la persona
     float angle_to_person = std::atan2(x, y);
+    float angle_derivative = angle_to_person - angulo_anterior;
 
+    // Control del robot para girar hacia la persona
+    float rotational_speed = (angle_to_person * 1.0) + (angle_derivative * 0.2);
 
-    // Controlar el robot para girar hacia la persona
-    float rotational_speed = angle_to_person * 1.5;
-    float linear_speed = 0.0; // Puedes ajustar esto si quieres que el robot avance
+    // Velocidad de avance base
+    float linear_speed = params.MAX_ADV_SPEED;
 
+    // Función de freno gaussiana:
+    auto gaussian_break = [](float x) -> float
+    {
+        static double xset = 0.5;
+        static double yset = 0.8;
+        static float s = -(xset * xset) / std::log(yset);
+        return (float)exp(-x * x / s);
+    };
 
-    return RetVal(STATE::TRACK, 0, rotational_speed);
+    // Ajuste de la velocidad de avance usando el freno gaussiano
+    float brake = gaussian_break(rotational_speed);
+    linear_speed *= brake;
+
+    return RetVal(STATE::TRACK, linear_speed, rotational_speed);
 }
 //
-SpecificWorker::RetVal SpecificWorker::wait(const RoboCompVisualElementsPub::TObject &person)
+SpecificWorker::RetVal SpecificWorker::wait(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
     //qDebug() << __FUNCTION__ ;
     // check if the person is further than a threshold
-    if(std::hypot(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos"))) > params.PERSON_MIN_DIST + 100)
+
+    if(not person)
+        return RetVal(STATE::WAIT, 0.f, 0.f);
+
+    if(std::hypot(std::stof(person.value().attributes.at("x_pos")), std::stof(person.value().attributes.at("y_pos"))) > params.PERSON_MIN_DIST)
         return RetVal(STATE::TRACK, 0.f, 0.f);
 
     return RetVal(STATE::WAIT, 0.f, 0.f);
+
+}
+SpecificWorker::RetVal SpecificWorker::search(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
+{
+    qDebug()<<"Hola";
+    if(person)
+        return RetVal(STATE::TRACK, 0.f, 0.f);
+
+    float rotation_speed = 1.0f;  // Velocidad de rotación para girar en busca de la persona
+    return RetVal(STATE::SEARCH, 0.f, rotation_speed);
+
 
 }
 /**
