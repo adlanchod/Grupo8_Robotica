@@ -73,9 +73,9 @@ class SpecificWorker : public GenericWorker
             std::string LIDAR_NAME_HIGH = "helios";
             QRectF GRID_MAX_DIM{-5000, 2500, 10000, -5000};
             // control track
-            float acc_distance_factor = 2;
-            float k1 = 1.1;  // proportional gain for the angle error;
-            float k2 = 0.5; // proportional gain for derivative of the angle error;
+            float brake_sensitive = 2;
+            float auxiliar1 = 1.1;  // proportional gain for the angle error;
+            float auxiliar2 = 0.5; // proportional gain for derivative of the angle error;
         };
         Params params;
 

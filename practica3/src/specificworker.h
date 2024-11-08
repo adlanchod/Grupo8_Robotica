@@ -126,7 +126,7 @@ class SpecificWorker : public GenericWorker
         rc::Room_Detector room_detector;
         void update_room_model(const auto &points, QGraphicsScene *scene);
         rc::Room room_model;
-        std::tuple<std::vector<Eigen::Vector2f>, std::vector<QLineF>> remove_wall_points(const auto &helios, const auto &bpearl);
+        std::vector<Eigen::Vector2f> remove_wall_points(const auto &lines, const auto &bpearl);
         std::vector<QPolygonF> get_walls_as_polygons(const std::vector<QLineF> &lines, float robot_width);
         std::vector<QLineF> detect_wall_lines(const vector<Eigen::Vector2f> &points);
 

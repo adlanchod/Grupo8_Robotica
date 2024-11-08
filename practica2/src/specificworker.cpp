@@ -90,17 +90,9 @@ void SpecificWorker::compute()
     if(not data_.has_value()) { qWarning() << __FUNCTION__ << "Empty buffer"; return; }
     else data = data_.value();
 
-    // get person and draw on viewer
-    //auto person = find_person_in_data(data.objects);
-    //if(not person.has_value())
-    //{ qWarning() << __FUNCTION__ << QString::fromStdString(person.error()); return; }   // STOP THE ROBOT
-
-
     // Obtener la persona y dibujar en el visor
     auto person = find_person_in_data(data.objects);
-
-
-
+    
     // call state machine to track person
     const auto &[adv, rot] = state_machine(person);
 
@@ -195,35 +187,23 @@ SpecificWorker::RobotSpeed SpecificWorker::state_machine(const std::expected<Rob
     return {speed, rot};
 }
 /**
- * Analyzes the filtered points to determine whether to continue moving forward or to stop and turn.
+ * @brief Tracks the detected person, adjusting speed and rotation to maintain alignment and a safe distance.
  *
- * This method examines the central part of the `filtered_points` vector to find the minimum distance
- * point within that range. If the minimum distance is less than the width of the robot, it indicates
- * an obstacle is too close, prompting a state change to `TURN` and stopping motion. Otherwise,
- * the robot continues to move forward.
+ * In the `TRACK` state, the robot continuously follows the detected person by calculating the
+ * distance and angular error between itself and the person. If the person is too close, it switches
+ * to the `WAIT` state to maintain a safe distance. If the person is lost, it switches to `SEARCH`.
+ * The robot modulates its speed and rotation using calculated braking factors to ensure smooth tracking.
  *
- * @param filtered_points A vector of filtered points representing the robot's perception of obstacles.
- * @return A `RetVal` tuple consisting of the state (`FORWARD` or `TURN`), speed, and rotation.
+ * @param person An expected object `RoboCompVisualElementsPub::TObject` representing the detected person,
+ *               or `null` if no person is found.
+ * @return A `RetVal` tuple consisting of the next state (`TRACK`, `WAIT`, or `SEARCH`), speed, and rotation.
  */
- // State function to track a person
 SpecificWorker::RetVal SpecificWorker::track(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
-    qDebug() << "Entramos en el método track, para iniciar el seguimiento del robot";
+    static float angulo_anterior = 0.0;
 
-    static float angulo_anterior = 0.f;
-
-    // Función de freno gaussiana:
-    auto gaussian_break = [](float x) -> float
-    {
-        static double xset = 0.5;
-        static double yset = 0.8;
-        static float s = -(xset * xset) / std::log(yset);
-        return (float)exp(-x * x / s);
-    };
-
-    //Si no encuentra a la persona va a ir a la función girar para poder encontrarla
-    if(not person)
-    {    return RetVal(STATE::SEARCH, 0.f, 0.f); }
+     if(not person)
+    {   qWarning() << __FUNCTION__ << "No person found"; return RetVal(STATE::SEARCH, 0.f, 0.f);}
 
 
     auto x = std::stof(person.value().attributes.at("x_pos"));
@@ -231,84 +211,72 @@ SpecificWorker::RetVal SpecificWorker::track(const std::expected<RoboCompVisualE
     auto distance = std::hypot(x, y);
     lcdNumber_dist_to_person->display(distance);
 
-    // check if the distance to the person is lower than a threshold
+     // check if the distance to the person is lower than a threshold
     if(distance < params.PERSON_MIN_DIST)
-    {   qWarning() << __FUNCTION__ << "Distance to person lower than threshold";
-        return RetVal(STATE::WAIT, 0.f, 0.f);}
+    {   qWarning() << __FUNCTION__ << "Distance to person lower than threshold";return RetVal(STATE::WAIT, 0.f, 0.f);}
 
-    // Calcular el ángulo hacia la persona
+    // angle error is the angle between the robot and the person. It has to be brought to zero
     float angle_to_person = std::atan2(x, y);
     float angle_derivative = angle_to_person - angulo_anterior;
+    float rotational_speed = params.auxiliar1 * angle_to_person  + params.auxiliar2 * angle_derivative;
+    angulo_anterior = angle_to_person;
 
+    //qDebug() << __FUNCTION__;
+    // variance of the gaussian function is set by the user giving a point xset where the function must be yset, and solving for s
+    auto gaussian_break = [](float x) -> float
+    {
+        static double xset = 0.5;
+        static double yset = 0.73;
+        static float s = -(xset * xset) / std::log(yset);
+        return (float)exp(-x * x / s);
+    };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // Control del robot para girar hacia la persona
-    float rotational_speed = (angle_to_person * 1.0) + (angle_derivative * 0.2);
-
-    // Velocidad de avance base
-    float linear_speed = params.MAX_ADV_SPEED;
-
-
-
-    // Ajuste de la velocidad de avance usando el freno gaussiano
-    float brake = gaussian_break(rotational_speed);
-    linear_speed *= brake;
-
-    return RetVal(STATE::TRACK, linear_speed, rotational_speed);
+    // rot_brake is a value between 0 and 1 that decreases the speed when the robot is not facing the person
+    float rotation_brake = gaussian_break(rotational_speed);
+    // acc_distance is the distance given to the robot to reach again the maximum speed
+    float acc_distance = params.brake_sensitive * params.ROBOT_WIDTH;
+     // advance brake is a value between 0 and 1 that decreases the speed when the robot is too close to the person
+    float adv_brake = std::clamp(distance * 1.f/acc_distance - (params.PERSON_MIN_DIST / acc_distance), 0.f, 1.f);
+    return RetVal(STATE::TRACK, params.MAX_ADV_SPEED * rotation_brake * adv_brake, rotational_speed);
 }
-//
+
+/**
+ * @brief Pauses the robot when the person is too close.
+ *
+ * This method is called when the robot detects that the person is within a minimum distance threshold.
+ * While in the `WAIT` state, the robot stops its movement entirely until the person moves further away.
+ * Once the person is beyond the threshold, the state transitions to `TRACK` to resume following.
+ *
+ * @param person An expected object `RoboCompVisualElementsPub::TObject` representing the detected person.
+ * @return A `RetVal` tuple consisting of the next state (`WAIT` or `TRACK`), speed, and rotation.
+ */
 SpecificWorker::RetVal SpecificWorker::wait(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
-    //qDebug() << __FUNCTION__ ;
-    // check if the person is further than a threshold
-
     if(not person)
         return RetVal(STATE::WAIT, 0.f, 0.f);
 
-    if(std::hypot(std::stof(person.value().attributes.at("x_pos")), std::stof(person.value().attributes.at("y_pos"))) > params.PERSON_MIN_DIST)
+    if(std::hypot(std::stof(person.value().attributes.at("x_pos")), std::stof(person.value().attributes.at("y_pos"))) > params.PERSON_MIN_DIST + 100)
         return RetVal(STATE::TRACK, 0.f, 0.f);
 
     return RetVal(STATE::WAIT, 0.f, 0.f);
 
 }
+/**
+ * @brief Rotates the robot to search for the person when they are not detected.
+ *
+ * In the `SEARCH` state, the robot rotates in place to scan the surrounding area for the person.
+ * The robot continues to search until it detects the person. If the person is detected,
+ * the state changes to `TRACK` to begin following. While searching, the robot rotates at a constant speed.
+ *
+ * @param person An expected object `RoboCompVisualElementsPub::TObject` representing the detected person, or `null` if no person is found.
+ * @return A `RetVal` tuple consisting of the next state (`SEARCH` or `TRACK`), speed, and rotation.
+ */
 SpecificWorker::RetVal SpecificWorker::search(const std::expected<RoboCompVisualElementsPub::TObject, std::string> &person)
 {
-    qDebug()<<"Hola";
     if(person)
-        return RetVal(STATE::TRACK, 0.f, 0.f);
+    {   qWarning() << __FUNCTION__ << "person found"; return RetVal(STATE::TRACK, 0.f, 0.f);}
 
-    float rotation_speed = 1.0f;  // Velocidad de rotación para girar en busca de la persona
+    float rotation_speed = 0.9f;  // Velocidad de rotación para girar en busca de la persona
     return RetVal(STATE::SEARCH, 0.f, rotation_speed);
 
 

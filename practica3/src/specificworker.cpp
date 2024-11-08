@@ -81,23 +81,25 @@ void SpecificWorker::compute()
 
     auto helios_points = read_lidar_helios();
     if(helios_points.empty()) { qWarning() << __FUNCTION__ << "Empty helios lidar data"; return; };
-    //draw_lidar(ldata.points, &viewer->scene);
+    draw_lidar(helios_points, &viewer->scene);
 
     /// detect wall lines
     auto lines = detect_wall_lines(helios_points);
 
     /// remove wall lines
-    auto new_data = remove_wall_points(helios_points, bpearl_points);
-    auto &[filtered_points, walls_polys] = new_data;
+    auto filtered_points = remove_wall_points(lines, bpearl_points);
 
     /// get walls as polygons
-    std::vector<QPolygonF> obstacles = get_walls_as_polygons(walls_polys, params.ROBOT_WIDTH/2);
+    std::vector<QPolygonF> obstacles = get_walls_as_polygons(lines, params.ROBOT_WIDTH/2);
+    draw_obstacles(obstacles, &viewer->scene, Qt::darkYellow);
 
     /// get obstacles as polygons using DBSCAN
     auto obs = rc::dbscan(filtered_points, params.ROBOT_WIDTH, 2, params.ROBOT_WIDTH);
     // append to existing obstacles vector
     obstacles.insert(obstacles.end(), obs.begin(), obs.end());
     draw_lidar(filtered_points, &viewer->scene);
+
+
 
     /// check if there is new YOLO data in buffer
     std::expected<RoboCompVisualElementsPub::TObject, std::string> tp_person = std::unexpected("No person found");
@@ -186,15 +188,34 @@ std::vector<Eigen::Vector2f> SpecificWorker::read_lidar_helios()
  * param points The set of points to be filtered.
  * return A vector of polygons representing the filtered points.
  */
-std::tuple<std::vector<Eigen::Vector2f>, std::vector<QLineF>>
-        SpecificWorker::remove_wall_points(const auto &helios, const auto &bpearl)
+std::vector<Eigen::Vector2f>
+        SpecificWorker::remove_wall_points(const auto &lines, const auto &bpearl_points)
 {
-    std::vector<Eigen::Vector2f> points_inside;
-    std::vector<QLineF> ls;
+    std::vector<Eigen::Vector2f> filtered_points;
+    const float distance_threshold = 100.0f;
 
-    // your code here
 
-    return std::make_tuple(points_inside, ls);
+    for (const auto &point : bpearl_points)
+    {
+        bool is_near_line = true;
+
+        // Comprobar la distancia a cada línea
+        for (const auto &line : lines)
+        {
+            Eigen::Vector2f p1(line.x1(), line.y1());
+            Eigen::Vector2f p2(line.x2(), line.y2());
+            auto eigen_line = Eigen::ParametrizedLine<float, 2>::Through(p1, p2);
+            float distance = eigen_line.distance(point);
+            if (distance < distance_threshold)
+            {
+                is_near_line = false;
+                break;
+            }
+        }
+        if (is_near_line)
+            filtered_points.push_back(point);
+    }
+    return (filtered_points);
 }
 std::expected<RoboCompVisualElementsPub::TObject, std::string>
 SpecificWorker::find_person_in_data(const std::vector<RoboCompVisualElementsPub::TObject> &objects)
@@ -261,9 +282,9 @@ std::vector<QPolygonF> SpecificWorker::get_walls_as_polygons(const vector<QLineF
 std::vector<QLineF> SpecificWorker::detect_wall_lines(const vector<Eigen::Vector2f> &points)
 {
     std::vector<QLineF> lines;
-
-    // YOUR CODE
-
+    const auto  &[ls, _, __, ___] = room_detector.compute_features(points, &viewer->scene);
+    for (const auto &l: ls)
+        lines.emplace_back(l.second);
     return lines;
 }
 //////////////////////////////////////////////////////////////////
