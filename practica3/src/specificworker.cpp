@@ -106,6 +106,9 @@ void SpecificWorker::compute()
     /// find obstacles
     auto obstacles = rc::dbscan(bpearl, params.ROBOT_WIDTH, 2);
 
+    /// enlarge obstacles
+    obstacles = enlarge_polygons(obstacles, params.ROBOT_WIDTH / 2);
+
     /// check if there is new YOLO data in buffer
     std::expected<RoboCompVisualElementsPub::TObject, std::string> tp_person = std::unexpected("No person found");
     auto [data_] = buffer.read_first();
@@ -115,10 +118,8 @@ void SpecificWorker::compute()
     /// remove person from obstacles
     if(tp_person)
         obstacles = find_person_polygon_and_remove(tp_person.value(), obstacles);
-
-    /// enlarge obstacles
-    obstacles = enlarge_polygons(obstacles, params.ROBOT_WIDTH);
     draw_obstacles(obstacles, &viewer->scene, Qt::darkMagenta);
+
 
     /// get walls as polygons
     std::vector<QPolygonF> wall_obs = get_walls_as_polygons(lines, params.ROBOT_WIDTH/4);
@@ -292,8 +293,9 @@ std::vector<QPolygonF> SpecificWorker::find_person_polygon_and_remove(const Robo
     QPointF pp = QPointF(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos")));
     // compute 8 point around pp in circular configuration
     std::vector<QPointF> ppoly;
-    for (auto i: iter::range(0.0, 2 * M_PI, M_PI / 2))
-        ppoly.push_back(pp + QPointF(80 * cos(i), 80 * sin(i)));
+    ppoly.push_back(pp);
+    for (auto i: iter::range(0.0, 2 * M_PI, M_PI / 6))
+        ppoly.push_back(pp + QPointF(200 * cos(i), 200 * sin(i)));
     // check if any polygon contains the person and remove it
     for(const auto &poly: obstacles)
     {
@@ -358,7 +360,6 @@ SpecificWorker::RobotSpeed SpecificWorker::state_machine(const Tpath &path)
  // State function to track a person
 SpecificWorker::RetVal SpecificWorker::track(const Tpath &path)
 {
-    qDebug() << "Entrando track";
     static float ant_angle_error = 0.0;
     //qDebug() << __FUNCTION__;
     // variance of the gaussian function is set by the user giving a point xset where the function must be yset, and solving for s
@@ -378,7 +379,6 @@ SpecificWorker::RetVal SpecificWorker::track(const Tpath &path)
 
     auto distance = path.back().norm();
     lcdNumber_dist_to_person->display(distance);
-    qDebug() << "Distance: " << distance;
 
     // check if the distance to the person is lower than a threshold
     if(distance < params.PERSON_MIN_DIST) {

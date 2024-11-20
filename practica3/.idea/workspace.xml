@@ -27,7 +27,6 @@
     <list default="true" id="474e93c4-2586-4bc4-8f00-3f63b5a7a682" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/specificworker.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/specificworker.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/specificworker.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/specificworker.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -79,11 +78,6 @@
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
-    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="obs_person_tracker" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="obs_person_tracker" TARGET_NAME="obs_person_tracker" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="obs_person_tracker" RUN_TARGET_NAME="obs_person_tracker">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -103,7 +97,8 @@
       <option name="presentableId" value="Default" />
       <updated>1730905975041</updated>
       <workItem from="1730905976130" duration="9953000" />
-      <workItem from="1731509153256" duration="11849000" />
+      <workItem from="1731509153256" duration="12317000" />
+      <workItem from="1732114418199" duration="5408000" />
     </task>
     <servers />
   </component>
