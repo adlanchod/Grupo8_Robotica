@@ -3,6 +3,11 @@
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
+  <component name="BackendCodeEditorMiscSettings">
+    <option name="/Default/RiderDebugger/RiderRestoreDecompile/RestoreDecompileSetting/@EntryValue" value="false" type="bool" />
+    <option name="/Default/Housekeeping/GlobalSettingsUpgraded/IsUpgraded/@EntryValue" value="true" type="bool" />
+    <option name="/Default/Housekeeping/FeatureSuggestion/FeatureSuggestionManager/DisabledSuggesters/=SwitchToGoToActionSuggester/@EntryIndexedValue" value="true" type="bool" />
+  </component>
   <component name="CMakePresetLoader">{
   &quot;useNewFormat&quot;: true
 }</component>
@@ -25,6 +30,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="474e93c4-2586-4bc4-8f00-3f63b5a7a682" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/DoxyFile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/etc/config" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/grid2d.cdsl" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/CMakeLists.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/CMakeListsSpecific.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/commonbehaviorI.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/commonbehaviorI.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/config.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/genericmonitor.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/genericmonitor.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/genericworker.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/genericworker.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/grid2dI.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/grid2dI.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/main.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/mainUI.ui" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/specificmonitor.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/specificmonitor.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/specificworker.cpp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/src/specificworker.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../practica4/grid2d/statemachine.smdsl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/specificworker.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/specificworker.cpp" afterDir="false" />
     </list>
@@ -40,6 +68,9 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/src/specificworker.cpp" root0="SKIP_HIGHLIGHTING" />
+  </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
     <option name="majorVersion" value="2024" />
@@ -54,24 +85,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.RadMigrateCodeStyle&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.readMode.enableVisualFormatting&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/robocomp/robocomp/components/Grupo8_Robotica/practica3&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.RadMigrateCodeStyle": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "RunOnceActivity.readMode.enableVisualFormatting": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "/home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager" selected="CMake Application.obs_person_tracker">
     <configuration name="ICES__home_robocomp_robocomp_components_Grupo8_Robotica_practica3_src" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="obs_person_tracker" TARGET_NAME="ICES__home_robocomp_robocomp_components_Grupo8_Robotica_practica3_src" CONFIG_NAME="Debug">
       <method v="2">
@@ -98,7 +129,8 @@
       <updated>1730905975041</updated>
       <workItem from="1730905976130" duration="9953000" />
       <workItem from="1731509153256" duration="12317000" />
-      <workItem from="1732114418199" duration="5408000" />
+      <workItem from="1732114418199" duration="6803000" />
+      <workItem from="1732719186687" duration="3349000" />
     </task>
     <servers />
   </component>

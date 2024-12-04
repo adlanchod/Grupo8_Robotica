@@ -1,0 +1,17 @@
+# Sources set
+LIST(APPEND SOURCES
+  specificworker.cpp
+  specificmonitor.cpp
+)
+
+# Headers set
+LIST(APPEND HEADERS
+  specificworker.h
+  specificmonitor.h
+)
+
+add_definitions(-O3 -fmax-errors=1 -fno-char8_t)
+
+LIST(APPEND LIBS ${LIBS}  )
+
+

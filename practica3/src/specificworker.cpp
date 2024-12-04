@@ -120,7 +120,6 @@ void SpecificWorker::compute()
         obstacles = find_person_polygon_and_remove(tp_person.value(), obstacles);
     draw_obstacles(obstacles, &viewer->scene, Qt::darkMagenta);
 
-
     /// get walls as polygons
     std::vector<QPolygonF> wall_obs = get_walls_as_polygons(lines, params.ROBOT_WIDTH/4);
     obstacles.insert(obstacles.end(), wall_obs.begin(), wall_obs.end());
