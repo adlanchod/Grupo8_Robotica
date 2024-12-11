@@ -87,55 +87,25 @@ void SpecificWorker::initialize()
 }
 void SpecificWorker::compute()
 {
-     //read bpearl (lower) lidar and draw
-    auto ldata_bpearl = read_lidar_bpearl();
-    if(ldata_bpearl.empty()) { qWarning() << __FUNCTION__ << "Empty bpearl lidar data"; return; };
-    //draw_lidar(ldata.points, &viewer->scene);
-
-    auto ldata_helios = read_lidar_helios();
-    if(ldata_helios.empty()) { qWarning() << __FUNCTION__ << "Empty helios lidar data"; return; };
-    //draw_lidar(ldata.points, &viewer->scene);
-
-    /// wall lines
-    auto lines = detect_wall_lines(ldata_helios, &viewer->scene);
-
-    /// remove wall points
-    auto bpearl = remove_wall_points(lines, ldata_bpearl);
-    draw_lidar(bpearl, &viewer->scene);
-
-    /// find obstacles
-    auto obstacles = rc::dbscan(bpearl, params.ROBOT_WIDTH, 2);
-
-    /// enlarge obstacles
-    obstacles = enlarge_polygons(obstacles, params.ROBOT_WIDTH / 2);
-
     /// check if there is new YOLO data in buffer
     std::expected<RoboCompVisualElementsPub::TObject, std::string> tp_person = std::unexpected("No person found");
     auto [data_] = buffer.read_first();
     if(data_.has_value())
         tp_person = find_person_in_data(data_.value().objects);
+    else return;
 
-    /// remove person from obstacles
-    if(tp_person)
-        obstacles = find_person_polygon_and_remove(tp_person.value(), obstacles);
-    draw_obstacles(obstacles, &viewer->scene, Qt::darkMagenta);
-
-    /// get walls as polygons
-    std::vector<QPolygonF> wall_obs = get_walls_as_polygons(lines, params.ROBOT_WIDTH/4);
-    obstacles.insert(obstacles.end(), wall_obs.begin(), wall_obs.end());
     std::vector<Eigen::Vector2f> path;
-
-    /// compute an obstacle free path
-    if(tp_person)
+    try
     {
-        Eigen::Vector2f goal{std::stof(tp_person.value().attributes.at("x_pos")), std::stof(tp_person.value().attributes.at("y_pos"))};
-        path = rc::VisibilityGraph().generate_path(Eigen::Vector2f::Zero(),
-                                                                                goal,
-                                                                                obstacles,
-                                                                                params.ROBOT_WIDTH / 2,
-                                                                                nullptr);
-        draw_path_to_person(path, &viewer->scene);
+            float x = std::stof(tp_person.value().attributes.at("x_pos"));
+            float y = std::stof(tp_person.value().attributes.at("y_pos"));
+            auto res = grid2d_proxy->getPaths(RoboCompGrid2D::TPoint{0.f, 0.f, 250}, RoboCompGrid2D::TPoint{x, y, 250});
+            draw_path(res.path);
+
+            std::ranges::transform(res.path, std::back_inserter(path), [](auto &p) { return Eigen::Vector2f{p.x, p.y};});
     }
+    catch (const Ice::Exception &e) { qDebug() << "Error al llamar a Grid2D_getPaths:" << e.what();}
+
 
     // call state machine to track person
     const auto &[adv, rot] = state_machine(path);
@@ -158,6 +128,35 @@ void SpecificWorker::compute()
     catch(const Ice::Exception &e){std::cout << e << std::endl;}
 
 }
+
+void SpecificWorker::draw_path(const std::vector<RoboCompGrid2D::TPoint> &path)
+{
+    // Limpiar elementos gráficos de la ruta anterior
+    for (auto item : path_items)
+    {
+        viewer->scene.removeItem(item);
+        delete item;
+    }
+    path_items.clear();
+
+    if (path.empty())
+    {
+        qDebug() << "La ruta está vacía. No hay nada que dibujar.";
+        return;
+    }
+
+    auto color = QColor(128, 0, 128); // Color púrpura
+    auto brush = QBrush(color);
+
+    for (const auto &point : path)
+    {
+        // Dibujar un rectángulo para cada punto en la ruta
+        auto item = viewer->scene.addRect(-50, -50, 100, 100, QPen(color), brush);
+        item->setPos(point.x, point.y); // Usar directamente las coordenadas de TPoint
+        path_items.push_back(item);
+    }
+}
+
 
 //////////////////////////////////////////////////////////////////
 /// YOUR CODE HERE

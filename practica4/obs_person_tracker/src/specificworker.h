@@ -54,6 +54,7 @@ class SpecificWorker : public GenericWorker
         void emergency();
         void restore();
         int startup_check();
+        void draw_path(const std::vector<RoboCompGrid2D::TPoint> &path);
 
     private:
         bool startup_check_flag;
@@ -97,6 +98,8 @@ class SpecificWorker : public GenericWorker
         RetVal stop();
         RobotSpeed state_machine(const Tpath &path);
 
+        std::vector<QGraphicsItem*> path_items; // Ítems gráficos para la ruta
+
         // lidar
         std::vector<Eigen::Vector2f> read_lidar_bpearl();
         std::vector<Eigen::Vector2f> read_lidar_helios();
@@ -132,6 +135,7 @@ class SpecificWorker : public GenericWorker
         // QCustomPlot object
         QCustomPlot *plot;
         void plot_distance(double distance);
+
 
     float running_average(float dist);
 };

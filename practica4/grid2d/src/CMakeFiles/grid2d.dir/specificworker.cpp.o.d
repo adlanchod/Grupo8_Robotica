@@ -1,9 +1,9 @@
 src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/specificworker.cpp \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/specificworker.cpp \
  /usr/include/stdc-predef.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/specificworker.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/genericworker.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/config.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/specificworker.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/genericworker.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/config.h \
  /usr/lib/gcc/x86_64-linux-gnu/12/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -20,7 +20,7 @@ src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /home/robocomp/robocomp/classes/qlog/qlog.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/config.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/config.h \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QtCore \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QtCoreDepends \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/qglobal.h \
@@ -888,7 +888,7 @@ src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qvectornd.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qwindowdefs.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qtguiversion.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/ui_mainUI.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/ui_mainUI.h \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QVariant \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/QApplication \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/qapplication.h \
@@ -906,7 +906,7 @@ src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/qgridlayout.h \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/QWidget \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/qwidget.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/CommonBehavior.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/CommonBehavior.h \
  /usr/include/IceUtil/PushDisableWarnings.h /usr/include/Ice/ProxyF.h \
  /usr/include/Ice/Config.h /usr/include/IceUtil/Config.h \
  /usr/include/c++/12/cassert /usr/include/Ice/ProxyHandle.h \
@@ -962,8 +962,8 @@ src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtStateMachine/qstate.h \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QEvent \
  /usr/include/x86_64-linux-gnu/qt6/QtCore/QString \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Grid2D.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Grid2D.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.h \
  /home/robocomp/robocomp/classes/abstract_graphic_viewer/abstract_graphic_viewer.h \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/QWidget \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/QGraphicsScene \
@@ -987,7 +987,7 @@ src/CMakeFiles/grid2d.dir/specificworker.cpp.o: \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/QGraphicsPolygonItem \
  /usr/include/x86_64-linux-gnu/qt6/QtWidgets/qgraphicsitem.h \
  /usr/include/x86_64-linux-gnu/qt6/QtGui/qpainterpath.h \
- /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.h \
+ /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.h \
  /usr/include/c++/12/expected \
  /home/robocomp/robocomp/classes/doublebuffer_sync/doublebuffer_sync.h \
  /usr/include/c++/12/ranges /usr/include/c++/12/span \

@@ -133,12 +133,29 @@ int ::obs_person_tracker::run(int argc, char* argv[])
 
 	int status=EXIT_SUCCESS;
 
+	RoboCompGrid2D::Grid2DPrxPtr grid2d_proxy;
 	RoboCompLidar3D::Lidar3DPrxPtr lidar3d_proxy;
 	RoboCompLidar3D::Lidar3DPrxPtr lidar3d1_proxy;
 	RoboCompOmniRobot::OmniRobotPrxPtr omnirobot_proxy;
 
 	string proxy, tmp;
 	initialize();
+
+	try
+	{
+		if (not GenericMonitor::configGetString(communicator(), prefix, "Grid2DProxy", proxy, ""))
+		{
+			cout << "[" << PROGRAM_NAME << "]: Can't read configuration for proxy Grid2DProxy\n";
+		}
+		grid2d_proxy = Ice::uncheckedCast<RoboCompGrid2D::Grid2DPrx>( communicator()->stringToProxy( proxy ) );
+	}
+	catch(const Ice::Exception& ex)
+	{
+		cout << "[" << PROGRAM_NAME << "]: Exception creating proxy Grid2D: " << ex;
+		return EXIT_FAILURE;
+	}
+	rInfo("Grid2DProxy initialized Ok!");
+
 
 	try
 	{
@@ -205,7 +222,7 @@ int ::obs_person_tracker::run(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	tprx = std::make_tuple(lidar3d_proxy,lidar3d1_proxy,omnirobot_proxy);
+	tprx = std::make_tuple(grid2d_proxy,lidar3d_proxy,lidar3d1_proxy,omnirobot_proxy);
 	SpecificWorker *worker = new SpecificWorker(tprx, startup_check_flag);
 	//Monitor thread
 	SpecificMonitor *monitor = new SpecificMonitor(worker,communicator());

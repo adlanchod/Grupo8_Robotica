@@ -1,5 +1,5 @@
-/home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/grid2d_autogen/EWIEGA46WW/moc_genericmonitor.cpp: /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/genericmonitor.h \
-  /home/usuario/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/grid2d_autogen/moc_predefs.h \
+/home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/grid2d_autogen/EWIEGA46WW/moc_genericmonitor.cpp: /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/genericmonitor.h \
+  /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/grid2d_autogen/moc_predefs.h \
   /home/usuario/robocomp_ws/src/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/CommonBehavior.h \
   /home/usuario/robocomp_ws/src/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Grid2D.h \
   /home/usuario/robocomp_ws/src/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.h \

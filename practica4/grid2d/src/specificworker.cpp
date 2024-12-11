@@ -109,13 +109,11 @@ QPointF SpecificWorker::indexToReal(float i, float j)
 QPointF SpecificWorker::realToIndex(float i, float j)
 {
 
-	//float x = (i * (GRID_SIZE /GRID_LENGTH)) + GRID_SIZE/2;
-	//float y = (j * (-GRID_SIZE/GRID_LENGTH))+ GRID_SIZE/2;
-
-	float scale = GRID_LENGTH/GRID_SIZE;
+	float scale = GRID_LENGTH/static_cast<float>(GRID_SIZE);
 
 	float x = (i + GRID_LENGTH/2)/scale;
-	float y = -(j - GRID_LENGTH / 2) / scale;
+	float y = (GRID_LENGTH / 2 - j) / scale;
+
 	return QPointF(x,y);
 }
 
@@ -141,8 +139,6 @@ void SpecificWorker::compute()
 	draw_lidar(ldata_bpearl, &viewer->scene);
 	clearGrid();
 	update(ldata_bpearl);
-
-
 	draw_path(path, &viewer->scene);
 
 
@@ -195,7 +191,7 @@ void SpecificWorker::update(const std::vector<Eigen::Vector2f> &lidar_points)
 		{
 			QPointF  index = realToIndex(s * point.x(), s * point.y());
 
-			//Convertimos los números de las celdas a númers enteros:
+			//Convertimos los números de las celdas a números enteros:
 			int i = static_cast<int>(index.x());
 			int j = static_cast<int>(index.y());
 
@@ -216,6 +212,24 @@ void SpecificWorker::update(const std::vector<Eigen::Vector2f> &lidar_points)
 					// Marca la última celda como ocupada (rojo)
 					grid[i][j].state = STATE::OCCUPIED;
 					grid[i][j].item->setBrush(QColor(Qt::red));
+
+					// Pintamos las celdas vecinas
+					for (int dx = -2; dx <= 2; dx++)
+					{
+						for (int dy = -2; dy <= 2; dy++)
+						{
+							int nx = i + dx;
+							int ny = j + dy;
+
+							// Comprobamos que las celdas vecinas estén dentro de la cuadrícula
+							if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE)
+							{
+								// Pintamos la celda vecina (por ejemplo, en rojo también)
+								grid[nx][ny].state = STATE::OCCUPIED;
+								grid[nx][ny].item->setBrush(QColor(Qt::red));
+							}
+						}
+					}
 				}
 			}
 		}
@@ -299,9 +313,6 @@ std::vector<QPointF> SpecificWorker::dijkstra(const std::pair<int, int> &start, 
             }
         }
     }
-
-
-
     // Si no se encontró una ruta, devolver una ruta vacía
     return {};
 }
@@ -316,7 +327,8 @@ void SpecificWorker::viewerSlot(QPointF coordinates)
 	int goalX = static_cast<int>(index.x());
 	int goalY = static_cast<int>(index.y());
 
-	// Verificar que los índices están dentro de los límites de la cuadrícula
+	qDebug() << "Indices obtenidos:" << goalX << goalY;
+	// Verificar que los índices estén dentro del rango de la cuadrícula
 	if (goalX < 0 || goalX >= GRID_SIZE || goalY < 0 || goalY >= GRID_SIZE)
 	{
 		qDebug() << "El punto seleccionado está fuera de los límites de la cuadrícula.";
@@ -407,11 +419,17 @@ int SpecificWorker::startup_check()
 
 RoboCompGrid2D::Result SpecificWorker::Grid2D_getPaths(RoboCompGrid2D::TPoint source, RoboCompGrid2D::TPoint target)
 {
-#ifdef HIBERNATION_ENABLED
-	hibernation = true;
-#endif
-//implementCODE
 
+	RoboCompGrid2D::Result result;
+
+	// Convertir los puntos de entrada al formato necesario para dijkstra
+	std::pair<int, int> start = {source.x, source.y};
+	std::pair<int, int> goal = {target.x, target.y};
+
+	// Llamar al algoritmo Dijkstra para calcular la ruta
+	auto path = dijkstra(start, goal);
+	std::ranges::transform(path, std::back_inserter(result.path), [](auto &p) { return RoboCompGrid2D::TPoint{p.x(), p.y(), 0.f};});
+	return result;
 }
 
 /**************************************/
