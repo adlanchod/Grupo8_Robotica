@@ -94,38 +94,52 @@ void SpecificWorker::compute()
         tp_person = find_person_in_data(data_.value().objects);
     else return;
 
-    std::vector<Eigen::Vector2f> path;
-    try
+	std::vector<Eigen::Vector2f> path;
+    if(tp_person.has_value())
     {
-            float x = std::stof(tp_person.value().attributes.at("x_pos"));
-            float y = std::stof(tp_person.value().attributes.at("y_pos"));
+
+    	float x = std::stof(tp_person.value().attributes.at("x_pos"));
+    	float y = std::stof(tp_person.value().attributes.at("y_pos"));
+
+    	try
+    	{
             auto res = grid2d_proxy->getPaths(RoboCompGrid2D::TPoint{0.f, 0.f, 250}, RoboCompGrid2D::TPoint{x, y, 250});
+            path.clear(); // Asegurarse de que el vector esté vacío antes de llenarlo
+    		for (const auto &p : res.path)
+        		path.emplace_back(p.x, p.y); // Convertir RoboCompGrid2D::TPoint a Eigen::Vector2f
             draw_path(res.path);
 
-            std::ranges::transform(res.path, std::back_inserter(path), [](auto &p) { return Eigen::Vector2f{p.x, p.y};});
-    }
-    catch (const Ice::Exception &e) { qDebug() << "Error al llamar a Grid2D_getPaths:" << e.what();}
+
+    	}
+    	catch (const Ice::Exception &e) { qDebug() << "Error al llamar a Grid2D_getPaths:" << e.what();}
+	}
+
+    if (path.empty())
+	{
+    	qWarning() << "Camino vacío. Cambiando a estado SEARCH.";
+    	state_machine(path); // Llamar a la máquina de estados con un camino vacío
+    	return;
+	}else{
 
 
-    // call state machine to track person
-    const auto &[adv, rot] = state_machine(path);
-
-    // plot on UI
-    if(tp_person)
-    {
-        float d = std::hypot(std::stof(tp_person.value().attributes.at("x_pos")),
+		const auto &[adv, rot] = state_machine(path);
+    	// plot on UI
+    	if(tp_person)
+    	{
+        	float d = std::hypot(std::stof(tp_person.value().attributes.at("x_pos")),
                                  std::stof(tp_person.value().attributes.at("y_pos")));
-        plot_distance(running_average(d) - params.PERSON_MIN_DIST);
-        lcdNumber_dist_to_person->display(d);
-        lcdNumber_angle_to_person->display(atan2(std::stof(tp_person.value().attributes.at("x_pos")),
+        	plot_distance(running_average(d) - params.PERSON_MIN_DIST);
+        	lcdNumber_dist_to_person->display(d);
+        	lcdNumber_angle_to_person->display(atan2(std::stof(tp_person.value().attributes.at("x_pos")),
                                                  std::stof(tp_person.value().attributes.at("y_pos"))));
-    }
-    lcdNumber_adv->display(adv);
-    lcdNumber_rot ->display(rot);
+    	}
+    	lcdNumber_adv->display(adv);
+    	lcdNumber_rot ->display(rot);
 
-    // move the robot
-    try{ omnirobot_proxy->setSpeedBase(0.f, adv, rot); }
-    catch(const Ice::Exception &e){std::cout << e << std::endl;}
+    	// move the robot
+    	try{ omnirobot_proxy->setSpeedBase(0.f, adv, rot); }
+    	catch(const Ice::Exception &e){std::cout << e << std::endl;}
+    }
 
 }
 
@@ -162,44 +176,6 @@ void SpecificWorker::draw_path(const std::vector<RoboCompGrid2D::TPoint> &path)
 /// YOUR CODE HERE
 //////////////////////////////////////////////////////////////////
 // Read the BPEARL lidar data and filter the points
-std::vector<Eigen::Vector2f> SpecificWorker::read_lidar_bpearl()
-{
-    try
-    {
-        auto ldata =  lidar3d1_proxy->getLidarData("bpearl", 0, 2*M_PI, 1);
-        // filter points according to height and distance
-        std::vector<Eigen::Vector2f>  p_filter;
-        for(const auto &a: ldata.points)
-        {
-            if(a.z < 500 and a.distance2d > 200)
-                p_filter.emplace_back(a.x, a.y);
-        }
-        return p_filter;
-    }
-    catch(const Ice::Exception &e){std::cout << e << std::endl;}
-    return {};
-}
-std::vector<Eigen::Vector2f> SpecificWorker::read_lidar_helios()
-{
-    try
-    {
-
-        auto ldata =  lidar3d_proxy->getLidarData("helios", 0, 2*M_PI, 2);
-        // filter points according to height and distance
-        std::vector<Eigen::Vector2f> p_filter;
-        for(const auto &a: ldata.points)
-        {
-            if(a.z > 1300 and a.distance2d > 200)
-                p_filter.emplace_back(a.x, a.y);
-        }
-
-
-
-        return p_filter;
-    }
-    catch(const Ice::Exception &e){std::cout << e << std::endl;}
-    return {};
-}
 std::vector<QLineF> SpecificWorker::detect_wall_lines(const vector<Eigen::Vector2f> &points, QGraphicsScene *scene)
 {
     std::vector<QLineF> lines;
@@ -385,7 +361,7 @@ SpecificWorker::RetVal SpecificWorker::track(const Tpath &path)
     }
 
     // angle error is the angle between the robot and the person. It has to be brought to zero
-    float angle_error = atan2(path[1].x(), path[1].y());
+    float angle_error = atan2(path[3].x(), path[3].y());
     float rot_speed = params.k1 * angle_error + params.k2 * (angle_error-ant_angle_error);
     ant_angle_error = angle_error;
     // rot_brake is a value between 0 and 1 that decreases the speed when the robot is not facing the person

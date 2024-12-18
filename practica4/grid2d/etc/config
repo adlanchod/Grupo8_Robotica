@@ -1,12 +1,12 @@
 CommonBehavior.Endpoints=tcp -p 10000
 
 # Endpoints for implements interfaces
-Grid2D.Endpoints=tcp -p 0
+Grid2D.Endpoints=tcp -p 13500
 
 
 # Proxies for required interfaces
 Lidar3DProxy = lidar3d:tcp -h localhost -p 11990
-Grid2DProxy = grid2d:tcp -h localhost -p 13500
+
 
 
 InnerModelPath = innermodel.xml

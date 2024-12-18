@@ -91,6 +91,8 @@ private:
 
 	std::array<std::array<TCell, GRID_SIZE>, GRID_SIZE> grid;// Número de celdas por lado
 
+	void cambiar_Persona(int x, int y);
+
 	//Draw
 	AbstractGraphicViewer *viewer;
 	void draw_lidar(auto &filtered_points, QGraphicsScene *scene);

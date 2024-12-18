@@ -100,10 +100,6 @@ class SpecificWorker : public GenericWorker
 
         std::vector<QGraphicsItem*> path_items; // Ítems gráficos para la ruta
 
-        // lidar
-        std::vector<Eigen::Vector2f> read_lidar_bpearl();
-        std::vector<Eigen::Vector2f> read_lidar_helios();
-
         // draw
         AbstractGraphicViewer *viewer;
         void draw_lidar(auto &filtered_points, QGraphicsScene *scene);

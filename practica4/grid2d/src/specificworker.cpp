@@ -343,6 +343,7 @@ void SpecificWorker::viewerSlot(QPointF coordinates)
 
 	// Ejecutar el algoritmo de Dijkstra
 	 path = dijkstra({startX, startY}, {goalX, goalY});
+	qDebug()<<path.size();
 
 
 }
@@ -415,22 +416,48 @@ int SpecificWorker::startup_check()
 	QTimer::singleShot(200, qApp, SLOT(quit()));
 	return 0;
 }
-
-
-RoboCompGrid2D::Result SpecificWorker::Grid2D_getPaths(RoboCompGrid2D::TPoint source, RoboCompGrid2D::TPoint target)
+void SpecificWorker::cambiar_Persona(int personX, int personY)
 {
+	// Iterar sobre las celdas vecinas alrededor de la posición de la persona
+	for (int dx = -2; dx <= 2; dx++)
+	{
+		for (int dy = -2; dy <= 2; dy++)
+		{
+			int nx = personX + dx;
+			int ny = personY + dy;
 
+			// Verificar que las celdas vecinas estén dentro de los límites de la cuadrícula
+			if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE)
+			{
+				// Establecer la celda como libre
+				grid[nx][ny].state = STATE::FREE;
+
+			}
+		}
+	}
+}
+
+RoboCompGrid2D::Result SpecificWorker::Grid2D_getPaths(RoboCompGrid2D::TPoint source, RoboCompGrid2D::TPoint target) {
 	RoboCompGrid2D::Result result;
 
-	// Convertir los puntos de entrada al formato necesario para dijkstra
-	std::pair<int, int> start = {source.x, source.y};
-	std::pair<int, int> goal = {target.x, target.y};
+	QPointF index = realToIndex(target.x, target.y);
+	int goalX = static_cast<int>(index.x());
+	int goalY = static_cast<int>(index.y());
+	qDebug() << goalX << goalY;
+	int startX = GRID_SIZE / 2;
+	int startY = GRID_SIZE / 2;
 
 	// Llamar al algoritmo Dijkstra para calcular la ruta
-	auto path = dijkstra(start, goal);
+	cambiar_Persona(goalX, goalY);
+	auto path = dijkstra({startX,startY} ,{goalX, goalY});
+	qDebug() << path.size();
 	std::ranges::transform(path, std::back_inserter(result.path), [](auto &p) { return RoboCompGrid2D::TPoint{p.x(), p.y(), 0.f};});
+	qDebug() << target.x;
+	qDebug() << target.y;
+	qDebug() << path.size();
 	return result;
 }
+
 
 /**************************************/
 // From the RoboCompLidar3D you can call this methods:
