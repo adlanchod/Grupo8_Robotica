@@ -1,4 +1,4 @@
-/snap/clion/308/bin/cmake/linux/x64/bin/cmake -G "Unix Makefiles" -S /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d -B /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d
+/snap/clion/310/bin/cmake/linux/x64/bin/cmake -G "Unix Makefiles" -S /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d -B /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d
 CMake Deprecation Warning at CMakeLists.txt:1 (cmake_minimum_required):
   Compatibility with CMake < 3.5 will be removed from a future version of
   CMake.
@@ -57,6 +57,6 @@ CMake Warning at src/CMakeLists.txt:5 (MESSAGE):
 -- BU ice=>h/cpp: Adding rule to generate Grid2D.h and Grid2D.cpp from /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Grid2D.ice
 -- BU ice=>h/cpp: Adding rule to generate Lidar3D.h and Lidar3D.cpp from /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d/src/Lidar3D.ice
 -- Generating header file from mainUI.ui
--- Configuring done (0.9s)
+-- Configuring done (0.7s)
 -- Generating done (0.0s)
 -- Build files have been written to: /home/robocomp/robocomp/components/Grupo8_Robotica/practica4/grid2d

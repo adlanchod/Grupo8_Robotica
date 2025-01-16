@@ -171,83 +171,6 @@ void SpecificWorker::draw_path(const std::vector<RoboCompGrid2D::TPoint> &path)
     }
 }
 
-
-//////////////////////////////////////////////////////////////////
-/// YOUR CODE HERE
-//////////////////////////////////////////////////////////////////
-// Read the BPEARL lidar data and filter the points
-std::vector<QLineF> SpecificWorker::detect_wall_lines(const vector<Eigen::Vector2f> &points, QGraphicsScene *scene)
-{
-    std::vector<QLineF> lines;
-    const auto &[ls, _, __, ___] = room_detector.compute_features(points, &viewer->scene);
-    for(const auto &l: ls)
-        lines.emplace_back(l.second);
-    return lines;
-}
-std::vector<Eigen::Vector2f> SpecificWorker::remove_wall_points(const std::vector<QLineF> &lines, const auto &bpearl)
-{
-    std::vector<Eigen::Vector2f> points_inside;
-    for(const auto &p: bpearl)
-    {
-        bool outside = true;
-        for(const auto &line: lines)
-        {
-            Eigen::Vector2f p1{line.x1(), line.y1()};
-            Eigen::Vector2f p2{line.x2(), line.y2()};
-            auto pline = Eigen::ParametrizedLine<float, 2>::Through(p1, p2);
-            if (pline.distance(p) < params.ROBOT_WIDTH)
-            {
-                outside = false;
-                break;
-            }
-        }
-        if(outside) points_inside.emplace_back(p);
-    }
-    return points_inside;
-}
-std::vector<QPolygonF> SpecificWorker::get_walls_as_polygons(const std::vector<QLineF> &lines, float robot_width)
-{
-    std::vector<QPolygonF> obstacles;
-    for(const auto &l: lines)
-    {
-        // create line
-        QLineF line = l;
-        // Calculate the direction vector of the line
-        QPointF direction = line.p2() - line.p1();
-        // Calculate the normal vector of the line
-        QPointF normal = QPointF(-direction.y(), direction.x());
-        // Normalize the normal vector
-        normal /= sqrt(normal.x()*normal.x() + normal.y()*normal.y());
-        // Create the polygon
-        QPolygonF poly;
-        poly << line.p1() + normal * robot_width/2 << line.p2() + normal * robot_width/2
-             << line.p2() - normal * robot_width/2 << line.p1() - normal * robot_width/2;
-        obstacles.push_back(poly);
-    }
-    return obstacles;
-}
-std::vector<QPolygonF> SpecificWorker::enlarge_polygons(const std::vector<QPolygonF> &polygons, float amount)
-{
-    std::vector<QPolygonF> enlargedPolygons;
-    for(const auto &poly: polygons)
-    {
-        QPolygonF exp_poly; // expanded polygon
-        if (poly.size() < 3) continue;  // skip polygons with less than 3 points
-        QPolygonF copy_poly(poly); // copy of the polygon to insert the first point at the end
-        copy_poly << poly[0] << poly[1];
-        for (const auto &p: iter::sliding_window(copy_poly, 3))
-        {
-            const auto p1 = Eigen::Vector2f{p[0].x(), p[0].y()};
-            const auto p2 = Eigen::Vector2f{p[1].x(), p[1].y()};
-            const auto p3 = Eigen::Vector2f{p[2].x(), p[2].y()};
-            const auto bisectrix = ((p1 - p2).normalized() + (p3 - p2).normalized()).normalized();
-            const Eigen::Vector2f np2 = p2 - amount * bisectrix;
-            exp_poly << QPointF{np2.x(), np2.y()};
-        }
-        enlargedPolygons.emplace_back(exp_poly);
-    }
-    return enlargedPolygons;
-}
 std::expected<RoboCompVisualElementsPub::TObject, std::string> SpecificWorker::find_person_in_data(const std::vector<RoboCompVisualElementsPub::TObject> &objects)
 {
     if(objects.empty())
@@ -261,30 +184,7 @@ std::expected<RoboCompVisualElementsPub::TObject, std::string> SpecificWorker::f
         return *p_;
     }
 }
-std::vector<QPolygonF> SpecificWorker::find_person_polygon_and_remove(const RoboCompVisualElementsPub::TObject &person, const std::vector<QPolygonF> &obstacles)
-{
-    std::vector<QPolygonF> new_obs;
-    QPointF pp = QPointF(std::stof(person.attributes.at("x_pos")), std::stof(person.attributes.at("y_pos")));
-    // compute 8 point around pp in circular configuration
-    std::vector<QPointF> ppoly;
-    ppoly.push_back(pp);
-    for (auto i: iter::range(0.0, 2 * M_PI, M_PI / 6))
-        ppoly.push_back(pp + QPointF(200 * cos(i), 200 * sin(i)));
-    // check if any polygon contains the person and remove it
-    for(const auto &poly: obstacles)
-    {
-        bool contains = false;
-        for(const auto &p: ppoly)
-            if(poly.containsPoint(p, Qt::OddEvenFill))
-            {
-                contains = true;
-                break;
-            }
-        if(not contains)
-            new_obs.push_back(poly);
-    }
-    return new_obs;
-}
+
 //////////////////////////////////////////////////////////////////
 /// STATE  MACHINE
 //////////////////////////////////////////////////////////////////

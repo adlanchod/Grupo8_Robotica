@@ -120,24 +120,12 @@ QPointF SpecificWorker::realToIndex(float i, float j)
 void SpecificWorker::compute()
 {
     std::cout << "Compute worker" << std::endl;
-	//computeCODE
-	//QMutexLocker locker(mutex);
-	//try
-	//{
-	//  camera_proxy->getYImage(0,img, cState, bState);
-    //    if (img.empty())
-    //        emit goToEmergency()
-	//  memcpy(image_gray.data, &img[0], m_width*m_height*sizeof(uchar));
-	//  searchTags(image_gray);
-	//}
-	//catch(const Ice::Exception &e)
-	//{
-	//  std::cout << "Error reading from Camera" << e << std::endl;
-	//}
 	auto ldata_bpearl = read_lidar_bpearl();
 	if(ldata_bpearl.empty()) { qWarning() << __FUNCTION__ << "Empty bpearl lidar data"; return; };
 	draw_lidar(ldata_bpearl, &viewer->scene);
+
 	clearGrid();
+
 	update(ldata_bpearl);
 	draw_path(path, &viewer->scene);
 
@@ -154,7 +142,7 @@ std::vector<Eigen::Vector2f> SpecificWorker::read_lidar_bpearl()
 		std::vector<Eigen::Vector2f>  p_filter;
 		for(const auto &a: ldata.points)
 		{
-			if(a.z < 500 and a.distance2d > 200)
+			if(a.z < 500 and a.distance2d > 100)
 				p_filter.emplace_back(a.x, a.y);
 		}
 		return p_filter;
@@ -201,10 +189,10 @@ void SpecificWorker::update(const std::vector<Eigen::Vector2f> &lidar_points)
 			{
 				if (s + 1.f/n < 1.0)
 				{
-
-					// Marca la celda como libre (blanco) si no es el último punto
-					grid[i][j].state = STATE::FREE;
-					grid[i][j].item->setBrush(QColor(Qt::white));
+					if (grid[i] [j].state != STATE::OCCUPIED) {
+						grid[i][j].state = STATE::FREE;
+						grid[i][j].item->setBrush(QColor(Qt::white));
+					}
 				}
 				else
 				{
@@ -214,9 +202,9 @@ void SpecificWorker::update(const std::vector<Eigen::Vector2f> &lidar_points)
 					grid[i][j].item->setBrush(QColor(Qt::red));
 
 					// Pintamos las celdas vecinas
-					for (int dx = -2; dx <= 2; dx++)
+					for (int dx = -3; dx <= 3; dx++)
 					{
-						for (int dy = -2; dy <= 2; dy++)
+						for (int dy = -3; dy <= 3; dy++)
 						{
 							int nx = i + dx;
 							int ny = j + dy;
@@ -419,9 +407,9 @@ int SpecificWorker::startup_check()
 void SpecificWorker::cambiar_Persona(int personX, int personY)
 {
 	// Iterar sobre las celdas vecinas alrededor de la posición de la persona
-	for (int dx = -2; dx <= 2; dx++)
+	for (int dx = -3; dx <= 3; dx++)
 	{
-		for (int dy = -2; dy <= 2; dy++)
+		for (int dy = -3; dy <= 3; dy++)
 		{
 			int nx = personX + dx;
 			int ny = personY + dy;
@@ -454,7 +442,7 @@ RoboCompGrid2D::Result SpecificWorker::Grid2D_getPaths(RoboCompGrid2D::TPoint so
 	std::ranges::transform(path, std::back_inserter(result.path), [](auto &p) { return RoboCompGrid2D::TPoint{p.x(), p.y(), 0.f};});
 	qDebug() << target.x;
 	qDebug() << target.y;
-	qDebug() << path.size();
+	qDebug() << "El camino es: " << path.size();
 	return result;
 }
 
